@@ -17,12 +17,32 @@ class Client():
 
     def welcome(self):
         print('Welcome to the FTP client\n')
+        self.help()
+
+    def help(self):
         print('List of available commands:')
         for cmd, desc in self.cmd_list:
             print(f"{f'{cmd}':<23}{f': {desc}':<40}")
 
     def main(self):
         self.welcome()
+        while True:
+            cmd = input('> ')
+            if cmd not in [_[0] for _ in self.cmd_list]:
+                print("Invalid command! See 'help' for list of available commands.")
+                continue
+            elif cmd.lower() == 'help':
+                self.help()
+            elif cmd.lower() == 'list':
+                pass
+            elif cmd.lower().startswith('dwld'):
+                pass
+            elif cmd.lower() == 'pwd':
+                pass
+            elif cmd.lower().startswith('cd'):
+                pass
+            else:
+                break
 
 
 myClient = Client()
