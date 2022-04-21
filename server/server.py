@@ -1,6 +1,7 @@
 import socket
 import os
 import json
+import random
 
 
 class Server():
@@ -19,7 +20,7 @@ class Server():
         self.socket.listen()
         self.connection, self.address = self.socket.accept()
         print(
-            f'Server listening to {self.address[0]} from port {self.address[1]}\n')
+            f'Server listening to {self.address[0]} through port {self.address[1]}\n')
 
     def list(self):
         buffer = '\n'
@@ -37,8 +38,33 @@ class Server():
         buffer += f"\n\t{f'Total size':<25}{f'{total_size} bytes':<20}\n"
         self.connection.send(buffer.encode())
 
-    def dwld(self):
-        pass
+    def dwld(self, file_name):
+        files_list = os.listdir()
+        if self.current_path == '/':
+            files_list.remove('server.py')
+        buffer = dict()
+        buffer['dwld'] = False
+        buffer['msg'] = f"File '{file_name}' not found!"
+        buffer['file_name'] = file_name
+        if file_name not in files_list or os.path.isdir(file_name):
+            return buffer
+        buffer['dwld'] = True
+        buffer['msg'] = f"Ready to send '{file_name}'! Waiting for connection ..."
+        buffer['port'] = random.randint(3000, 50000)
+        return buffer
+
+    def start_dwld(self, buffer):
+        dwld_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        dwld_socket.bind((self.host, buffer['port']))
+        dwld_socket.listen()
+        self.connection.send(json.dumps(buffer).encode())
+        dwld_connection, dwld_address = dwld_socket.accept()
+        print(f'Sending to {dwld_address[0]} through port {dwld_address[1]}')
+        with open(buffer['file_name'], 'rb') as file:
+            dwld_connection.send(file.read())
+        dwld_socket.close()
+        print(
+            f"Send '{buffer['file_name']}' successfully and closed connection")
 
     def pwd(self):
         self.connection.send(self.current_path.encode())
@@ -85,7 +111,12 @@ class Server():
                 elif cmd.lower().startswith('dwld ') and len(cmd) > 5:
                     print('Command: dwld')
                     print(f'Requested file: {cmd[5:]}')
-                    self.dwld()
+                    buffer = self.dwld(cmd[5:])
+                    print(buffer['msg'])
+                    if buffer['dwld']:
+                        self.start_dwld(buffer)
+                    else:
+                        self.connection.send(json.dumps(buffer).encode())
                 elif cmd.lower() == 'pwd':
                     print('Command: pwd\n')
                     self.pwd()

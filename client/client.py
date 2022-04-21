@@ -34,7 +34,19 @@ class Client():
         print(self.socket.recv(self.buffer_size).decode())
 
     def dwld(self):
-        pass
+        dwld_res = json.loads(self.socket.recv(self.buffer_size).decode())
+        if not dwld_res['dwld']:
+            print(dwld_res['msg'])
+            return
+        dwld_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        dwld_client.connect((self.host, dwld_res['port']))
+        with open(dwld_res['file_name'], 'wb') as dwld_file:
+            data = b''
+            while dwld_client.recv(self.buffer_size):
+                data += dwld_client.recv(self.buffer_size)
+            dwld_file.write(data)
+        dwld_client.close()
+        print(f"Downloaded '{dwld_res['file_name']}' successfully")
 
     def pwd(self):
         path = self.socket.recv(self.buffer_size).decode()
@@ -45,8 +57,8 @@ class Client():
         cd_res = json.loads(self.socket.recv(self.buffer_size).decode())
         if cd_res['cd']:
             self.current_path = cd_res['dir']
-        else:
-            print(cd_res['msg'])
+            return
+        print(cd_res['msg'])
 
     def exit(self):
         self.socket.close()
