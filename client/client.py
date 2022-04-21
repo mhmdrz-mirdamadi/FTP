@@ -33,7 +33,11 @@ class Client():
     def list(self):
         print(self.socket.recv(self.buffer_size).decode())
 
-    def pwd(self, path):
+    def dwld(self):
+        pass
+
+    def pwd(self):
+        path = self.socket.recv(self.buffer_size).decode()
         self.current_path = path
         print(f'Current path: {self.current_path}')
 
@@ -53,28 +57,22 @@ class Client():
         print()
         while True:
             cmd = input(f'{self.current_path}> ')
+            if len(cmd) != 0:
+                self.socket.send(cmd.encode())
             if cmd.lower() == 'help':
-                self.socket.send('help'.encode())
                 self.help()
             elif cmd.lower() == 'list':
-                self.socket.send('list'.encode())
                 self.list()
             elif cmd.lower().startswith('dwld ') and len(cmd) > 5:
-                pass
+                self.dwld()
             elif cmd.lower() == 'pwd':
-                self.socket.send('pwd'.encode())
-                self.pwd(self.socket.recv(self.buffer_size).decode())
+                self.pwd()
             elif cmd.lower().startswith('cd ') and len(cmd) > 3:
-                self.socket.send(cmd.encode())
                 self.cd()
             elif cmd.lower() == 'exit':
-                self.socket.send('exit'.encode())
                 self.exit()
                 break
             else:
-                if len(cmd) == 0:
-                    continue
-                self.socket.send(cmd.encode())
                 print(
                     f"Invalid command '{cmd}'! See 'help' for list of available commands.")
 

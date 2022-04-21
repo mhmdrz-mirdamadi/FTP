@@ -37,6 +37,9 @@ class Server():
         buffer += f"\n\t{f'Total size':<25}{f'{total_size} bytes':<20}\n"
         self.connection.send(buffer.encode())
 
+    def dwld(self):
+        pass
+
     def pwd(self):
         self.connection.send(self.current_path.encode())
 
@@ -80,7 +83,9 @@ class Server():
                     self.list()
                     print('Successfuly sent list of files\n')
                 elif cmd.lower().startswith('dwld ') and len(cmd) > 5:
-                    pass
+                    print('Command: dwld')
+                    print(f'Requested file: {cmd[5:]}')
+                    self.dwld()
                 elif cmd.lower() == 'pwd':
                     print('Command: pwd\n')
                     self.pwd()
