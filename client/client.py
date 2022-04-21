@@ -11,10 +11,12 @@ class Client():
             ('cd {DIRECTORY_NAME}', 'change the directory'),
             ('exit', 'close the FTP client')
         ]
-        self.current_path = './'
         self.host = '127.0.0.1'
         self.port = 2121
         self.buffer_size = 2048
+        self.current_path = './'
+
+    def connect_to_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((self.host, self.port))
 
@@ -27,6 +29,9 @@ class Client():
         for cmd, desc in self.cmd_list:
             print(f"{f'{cmd}':<23}{f': {desc}':<40}")
 
+    def list(self):
+        print(self.socket.recv(self.buffer_size).decode())
+
     def pwd(self, path):
         self.current_path = path
         print(f'Current path: {self.current_path}')
@@ -35,14 +40,17 @@ class Client():
         self.socket.close()
 
     def main(self):
+        self.connect_to_server()
         self.welcome()
+        print()
         while True:
             cmd = input(f'{self.current_path}> ')
             if cmd.lower() == 'help':
                 self.socket.send('help'.encode())
                 self.help()
             elif cmd.lower() == 'list':
-                pass
+                self.socket.send('list'.encode())
+                self.list()
             elif cmd.lower().startswith('dwld '):
                 pass
             elif cmd.lower() == 'pwd':
