@@ -42,8 +42,11 @@ class Client():
         dwld_client.connect((self.host, dwld_res['port']))
         with open(dwld_res['file_name'], 'wb') as dwld_file:
             data = b''
-            while dwld_client.recv(self.buffer_size):
-                data += dwld_client.recv(self.buffer_size)
+            while True:
+                temp = dwld_client.recv(self.buffer_size)
+                if not temp:
+                    break
+                data += temp
             dwld_file.write(data)
         dwld_client.close()
         print(f"Downloaded '{dwld_res['file_name']}' successfully")
