@@ -1,4 +1,5 @@
 import socket
+import json
 
 
 class Client():
@@ -14,7 +15,7 @@ class Client():
         self.host = '127.0.0.1'
         self.port = 2121
         self.buffer_size = 2048
-        self.current_path = './'
+        self.current_path = '/'
 
     def connect_to_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -36,6 +37,13 @@ class Client():
         self.current_path = path
         print(f'Current path: {self.current_path}')
 
+    def cd(self):
+        cd_res = json.loads(self.socket.recv(self.buffer_size).decode())
+        if cd_res['cd']:
+            self.current_path = cd_res['dir']
+        else:
+            print(cd_res['msg'])
+
     def exit(self):
         self.socket.close()
 
@@ -51,13 +59,14 @@ class Client():
             elif cmd.lower() == 'list':
                 self.socket.send('list'.encode())
                 self.list()
-            elif cmd.lower().startswith('dwld '):
+            elif cmd.lower().startswith('dwld ') and len(cmd) > 5:
                 pass
             elif cmd.lower() == 'pwd':
                 self.socket.send('pwd'.encode())
                 self.pwd(self.socket.recv(self.buffer_size).decode())
-            elif cmd.lower().startswith('cd '):
-                pass
+            elif cmd.lower().startswith('cd ') and len(cmd) > 3:
+                self.socket.send(cmd.encode())
+                self.cd()
             elif cmd.lower() == 'exit':
                 self.socket.send('exit'.encode())
                 self.exit()

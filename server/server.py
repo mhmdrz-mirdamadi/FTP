@@ -1,5 +1,6 @@
 import socket
 import os
+import json
 
 
 class Server():
@@ -8,7 +9,7 @@ class Server():
         self.port = 2121
         self.buffer_size = 2048
         self.root_path = os.getcwd()
-        self.current_path = './'
+        self.current_path = '/'
         print('Welcome to the FTP server')
         print(f'Server is ready to listen on port {self.port}\n')
 
@@ -24,7 +25,7 @@ class Server():
         buffer = '\n'
         total_size = 0
         files_list = os.listdir()
-        if self.current_path == './':
+        if self.current_path == '/':
             files_list.remove('server.py')
         for file in files_list:
             file_size = os.path.getsize(file)
@@ -38,6 +39,27 @@ class Server():
 
     def pwd(self):
         self.connection.send(self.current_path.encode())
+
+    def cd(self, path):
+        path = [dir for dir in path if dir not in ['', '.']]
+        buffer = dict()
+        buffer['cd'] = False
+        buffer['dir'] = self.current_path
+        if path[0] == '..' and self.current_path == '/':
+            buffer['msg'] = 'Access Denied!'
+            return buffer
+        dir = os.getcwd() + '/' + '/'.join(path)
+        if not os.path.isdir(dir):
+            buffer['msg'] = 'Directory not found!'
+            return buffer
+        os.chdir(dir)
+        self.current_path = os.getcwd()[len(self.root_path):]
+        if len(self.current_path) == 0:
+            self.current_path = '/'
+        buffer['cd'] = True
+        buffer['msg'] = 'Directory changed successfully.'
+        buffer['dir'] = self.current_path
+        return buffer
 
     def exit(self):
         self.connection.close()
@@ -57,13 +79,18 @@ class Server():
                     print('Command: list')
                     self.list()
                     print('Successfuly sent list of files\n')
-                elif cmd.lower().startswith('dwld '):
+                elif cmd.lower().startswith('dwld ') and len(cmd) > 5:
                     pass
                 elif cmd.lower() == 'pwd':
                     print('Command: pwd\n')
                     self.pwd()
-                elif cmd.lower().startswith('cd '):
-                    pass
+                elif cmd.lower().startswith('cd ') and len(cmd) > 3:
+                    print('Command: cd')
+                    print(f'Requested path: {cmd[3:]}')
+                    buffer = self.cd(cmd[3:].split('/'))
+                    print(buffer['msg'])
+                    print(f'Current directory: {buffer["dir"]}\n')
+                    self.connection.send(json.dumps(buffer).encode())
                 elif cmd.lower() == 'exit':
                     print('Command: exit\n')
                     self.exit()
