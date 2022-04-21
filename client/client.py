@@ -11,6 +11,7 @@ class Client():
             ('cd {DIRECTORY_NAME}', 'change the directory'),
             ('exit', 'close the FTP client')
         ]
+        self.current_path = './'
         self.host = '127.0.0.1'
         self.port = 2121
         self.buffer_size = 2048
@@ -26,13 +27,17 @@ class Client():
         for cmd, desc in self.cmd_list:
             print(f"{f'{cmd}':<23}{f': {desc}':<40}")
 
+    def pwd(self, path):
+        self.current_path = path
+        print(f'Current path: {self.current_path}')
+
     def exit(self):
         self.socket.close()
 
     def main(self):
         self.welcome()
         while True:
-            cmd = input('> ')
+            cmd = input(f'{self.current_path}> ')
             if cmd.lower() == 'help':
                 self.socket.send('help'.encode())
                 self.help()
@@ -41,7 +46,8 @@ class Client():
             elif cmd.lower().startswith('dwld '):
                 pass
             elif cmd.lower() == 'pwd':
-                pass
+                self.socket.send('pwd'.encode())
+                self.pwd(self.socket.recv(self.buffer_size).decode())
             elif cmd.lower().startswith('cd '):
                 pass
             elif cmd.lower() == 'exit':
@@ -49,6 +55,8 @@ class Client():
                 self.exit()
                 break
             else:
+                if len(cmd) == 0:
+                    continue
                 self.socket.send(cmd.encode())
                 print(
                     f"Invalid command '{cmd}'! See 'help' for list of available commands.")

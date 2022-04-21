@@ -1,11 +1,14 @@
 import socket
+import os
 
 
 class Server():
     def __init__(self):
+        self.current_path = './'
         self.host = '127.0.0.1'
         self.port = 2121
         self.buffer_size = 2048
+        self.root_path = os.getcwd()
         print('Welcome to the FTP server')
         print(f'Server is ready to listen on port {self.port}\n')
 
@@ -16,6 +19,9 @@ class Server():
         self.connection, self.address = self.socket.accept()
         print(
             f'Server listening to {self.address[0]} from port {self.address[1]}\n')
+
+    def pwd(self):
+        self.connection.send(self.current_path.encode())
 
     def exit(self):
         self.connection.close()
@@ -32,7 +38,8 @@ class Server():
             elif cmd.lower().startswith('dwld '):
                 pass
             elif cmd.lower() == 'pwd':
-                pass
+                print('Command: pwd\n')
+                self.pwd()
             elif cmd.lower().startswith('cd '):
                 pass
             elif cmd.lower() == 'exit':
