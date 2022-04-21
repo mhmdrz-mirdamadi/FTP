@@ -7,7 +7,7 @@ class Client():
         self.cmd_list = [
             ('help', 'show this description'),
             ('list', 'folders and files list in current directory'),
-            ('dwld {FILE_PATH}', 'download file from server'),
+            ('dwld {FILE_NAME}', 'download file from server'),
             ('pwd', 'show current directory path'),
             ('cd {DIRECTORY_NAME}', 'change the directory'),
             ('exit', 'close the FTP client')

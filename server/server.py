@@ -22,6 +22,14 @@ class Server():
         print(
             f'Server listening to {self.address[0]} through port {self.address[1]}\n')
 
+    def get_size_folder(self, start_path):
+        total_size = 0
+        for path, _, files in os.walk(start_path):
+            for f in files:
+                fp = os.path.join(path, f)
+                total_size += os.path.getsize(fp)
+        return total_size
+
     def list(self):
         buffer = '\n'
         total_size = 0
@@ -30,9 +38,12 @@ class Server():
             files_list.remove('server.py')
         for file in files_list:
             file_size = os.path.getsize(file)
-            file_path = f"\t{f'{file}':<25}{f'{file_size} bytes':<20}\n"
+            file_path = ''
             if os.path.isdir(file):
-                file_path = '>' + file_path
+                file_path += '>'
+                file_size += self.get_size_folder(
+                    os.getcwd()+'/'+file) - file_size
+            file_path += f"\t{f'{file}':<25}{f'{file_size} bytes':<20}\n"
             total_size += file_size
             buffer += file_path
         buffer += f"\n\t{f'Total size':<25}{f'{total_size} bytes':<20}\n"
